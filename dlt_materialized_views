@@ -1,0 +1,39 @@
+-- Example: Read from a silver streaming table and create gold layer tables
+
+-- Gold table: Aggregate total transaction amount by user
+CREATE OR REFRESH MATERIALIZED VIEW gold_total_amount_by_currency
+COMMENT 'Total transaction amount group by currency from silver layer'
+AS
+SELECT
+  currency,
+  SUM(amount) AS total_amount
+FROM local_stream_s3.silver.cls_transactions
+GROUP BY currency;
+
+-- Gold table: Count of transactions per city
+CREATE OR REFRESH MATERIALIZED VIEW gold_transaction_count_by_city
+COMMENT 'Transaction count by city from silver layer'
+AS
+SELECT
+  city,
+  COUNT(*) AS transaction_count
+FROM local_stream_s3.silver.cls_transactions
+GROUP BY city;
+
+-- Gold table: Top 10 users by transaction amount
+CREATE OR REFRESH MATERIALIZED VIEW gold_top_3_nations
+COMMENT 'Top 3 nations by total transaction amount from silver layer'
+AS
+SELECT
+  username,
+  SUM(amount) AS total_amount
+FROM local_stream_s3.silver.cls_transactions
+GROUP BY username
+ORDER BY total_amount DESC
+LIMIT 3;
+
+create or refresh materialized view gold_total_transactions
+comment "total of transactions"
+as
+select count(*) as total_transactions
+from local_stream_s3.silver.cls_transactions
